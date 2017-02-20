@@ -10,7 +10,7 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="no.northcode.jsondata.MainActivity">
 
-    <fragment android:name="no.northcode.jsondata.PersonFragment"
+    <fragment android:name="no.northcode.jsondata.PersonListFragment"
         android:id="@+id/list"
         android:layout_weight="1"
         android:layout_width="match_parent"
