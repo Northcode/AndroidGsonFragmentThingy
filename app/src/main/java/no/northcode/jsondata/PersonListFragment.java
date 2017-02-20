@@ -65,7 +65,7 @@ public class PersonListFragment extends ListFragment {
             personFragment.setArguments(bundle);
             FragmentTransaction transaction = getFragmentManager().beginTransaction();
             transaction.replace(R.id.layout_details_container, personFragment);
-            // transaction.addToBackStack(null);
+            transaction.addToBackStack(null);
             transaction.commit();
         } else {
             Intent openintent = new Intent(this.getActivity(), PersonDetailActivity.class);
