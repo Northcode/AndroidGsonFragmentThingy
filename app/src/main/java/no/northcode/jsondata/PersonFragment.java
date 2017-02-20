@@ -1,109 +1,96 @@
 package no.northcode.jsondata;
 
-import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.CallSuper;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import android.support.v4.app.ListFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ListView;
 
-import no.northcode.jsondata.dummy.DummyContent;
-import no.northcode.jsondata.dummy.DummyContent.DummyItem;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.Volley;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
-import java.util.List;
+import org.json.JSONArray;
 
-/**
- * A fragment representing a list of Items.
- * <p/>
- * Activities containing this fragment MUST implement the {@link OnListFragmentInteractionListener}
- * interface.
- */
-public class PersonFragment extends Fragment {
+import java.util.ArrayList;
 
-    // TODO: Customize parameter argument names
-    private static final String ARG_COLUMN_COUNT = "column-count";
-    // TODO: Customize parameters
-    private int mColumnCount = 1;
-    private OnListFragmentInteractionListener mListener;
+public class PersonFragment extends ListFragment {
 
-    /**
-     * Mandatory empty constructor for the fragment manager to instantiate the
-     * fragment (e.g. upon screen orientation changes).
-     */
+    ArrayList<Person> person_array;
+    PersonAdapter adapter;
+
     public PersonFragment() {
+        super();
+        person_array = new ArrayList<>();
     }
 
-    // TODO: Customize parameter initialization
-    @SuppressWarnings("unused")
-    public static PersonFragment newInstance(int columnCount) {
-        PersonFragment fragment = new PersonFragment();
-        Bundle args = new Bundle();
-        args.putInt(ARG_COLUMN_COUNT, columnCount);
-        fragment.setArguments(args);
-        return fragment;
+    @Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        adapter = new PersonAdapter(getContext(), R.layout.fragment_person, person_array);
+        setListAdapter(adapter);
+        return inflater.inflate(R.layout.fragment_person_list, container, false);
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    public void onStart() {
+        super.onStart();
 
-        if (getArguments() != null) {
-            mColumnCount = getArguments().getInt(ARG_COLUMN_COUNT);
-        }
+        getUserData();
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_person_list, container, false);
-
-        // Set the adapter
-        if (view instanceof RecyclerView) {
-            Context context = view.getContext();
-            RecyclerView recyclerView = (RecyclerView) view;
-            if (mColumnCount <= 1) {
-                recyclerView.setLayoutManager(new LinearLayoutManager(context));
-            } else {
-                recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
-            }
-            recyclerView.setAdapter(new MyPersonRecyclerViewAdapter(DummyContent.ITEMS, mListener));
-        }
-        return view;
+    public void onListItemClick(ListView l, View v, int position, long id) {
+        Intent openintent = new Intent(this.getActivity(), PersonDetailActivity.class);
+        Person person = (Person)v.getTag();
+        PersonParccel pack = new PersonParccel(person);
+        openintent.putExtra("person", pack);
+        startActivity(openintent);
     }
 
+    public void getUserData() {
 
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        if (context instanceof OnListFragmentInteractionListener) {
-            mListener = (OnListFragmentInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnListFragmentInteractionListener");
-        }
+        final String karkurl = "http://kark.hin.no:8088/d3330log_backend/getTestUsers";
+
+        System.out.println(" !!!!!!!!!!!!!!!!!!!!!!!!!!!!11 -------------------------- CALLLLLLLLLLLLLLL !!!!!!!!!!!!!!!!!!!!!1");
+
+        RequestQueue rqueue = Volley.newRequestQueue(getContext());
+        JsonArrayRequest request = new JsonArrayRequest(karkurl,
+                new Response.Listener<JSONArray>() {
+
+                    @Override
+                    public void onResponse(JSONArray response) {
+                        Gson gson = new Gson();
+                        person_array = gson.fromJson(response.toString(), new TypeToken<ArrayList<Person>>() {}.getType());
+                        person_array.addAll(person_array);
+                        person_array.addAll(person_array);
+                        person_array.addAll(person_array);
+                        adapter = new PersonAdapter(getContext(), R.layout.fragment_person, person_array);
+                        setListAdapter(adapter);
+                        System.out.println("Got response, should be visible");
+                    }
+                },
+                new Response.ErrorListener() {
+
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        System.out.println("there was an error downloading: " + error.toString());
+                    }
+                }
+        );
+
+        rqueue.add(request);
+        rqueue.start();
+
     }
 
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
-    }
-
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p/>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-    public interface OnListFragmentInteractionListener {
-        // TODO: Update argument type and name
-        void onListFragmentInteraction(DummyItem item);
-    }
 }
